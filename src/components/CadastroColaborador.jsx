@@ -24,15 +24,23 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
   const [erro, setErro] = useState('')
   const [sucesso, setSucesso] = useState('')
 
+  const token = localStorage.getItem('token')
+  const authHeaders = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  }
+
   useEffect(() => {
     carregarCategorias()
   }, [])
 
   const carregarCategorias = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/categorias-colaborador`)
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/categorias-colaborador`, {
+        headers: authHeaders
+      })
       const data = await response.json()
-      setCategorias(data)
+      setCategorias(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Erro ao carregar categorias:', error)
     }
@@ -44,7 +52,7 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/categorias-colaborador`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders,
         body: JSON.stringify({
           nome: novaCategoria,
           descricao: `Categoria ${novaCategoria}`
@@ -72,7 +80,7 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/funcionarias`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders,
         body: JSON.stringify(formData)
       })
 
@@ -83,7 +91,7 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
         }, 1500)
       } else {
         const errorData = await response.json()
-        setErro(errorData.error || 'Erro ao cadastrar colaborador')
+        setErro(errorData.error || errorData.erro || 'Erro ao cadastrar colaborador')
       }
     } catch (error) {
       setErro('Erro de conexão. Tente novamente.')
@@ -109,7 +117,6 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Nome */}
           <div className="space-y-2">
             <Label htmlFor="nome">Nome Completo *</Label>
             <Input
@@ -121,7 +128,6 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
             />
           </div>
 
-          {/* Email */}
           <div className="space-y-2">
             <Label htmlFor="email">Email *</Label>
             <Input
@@ -134,7 +140,6 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
             />
           </div>
 
-          {/* Senha */}
           <div className="space-y-2">
             <Label htmlFor="senha">Senha *</Label>
             <Input
@@ -147,7 +152,6 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
             />
           </div>
 
-          {/* Telefone */}
           <div className="space-y-2">
             <Label htmlFor="telefone">Telefone</Label>
             <Input
@@ -158,7 +162,6 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
             />
           </div>
 
-          {/* Categoria */}
           <div className="space-y-2">
             <Label>Categoria do Colaborador</Label>
             <div className="flex space-x-2">
@@ -190,7 +193,6 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
               </Button>
             </div>
 
-            {/* Nova Categoria */}
             {mostrarNovaCategoria && (
               <div className="flex space-x-2 mt-2">
                 <Input
@@ -211,7 +213,6 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
             )}
           </div>
 
-          {/* Permissões de Admin */}
           <div className="flex items-center space-x-2">
             <Checkbox
               id="is_admin"
@@ -223,7 +224,6 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
             </Label>
           </div>
 
-          {/* Mensagens */}
           {erro && (
             <Alert variant="destructive">
               <AlertDescription>{erro}</AlertDescription>
@@ -236,31 +236,19 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
             </Alert>
           )}
 
-          {/* Botões */}
           <div className="flex space-x-2">
-            <Button 
-              type="submit" 
-              className="flex-1" 
-              disabled={carregando}
-            >
+            <Button type="submit" className="flex-1" disabled={carregando}>
               {carregando ? (
                 <div className="flex items-center space-x-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   <span>Cadastrando...</span>
                 </div>
               ) : (
-                <>
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Cadastrar Colaborador
-                </>
+                <><UserPlus className="h-4 w-4 mr-2" />Cadastrar Colaborador</>
               )}
             </Button>
             {onCancel && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onCancel}
-              >
+              <Button type="button" variant="outline" onClick={onCancel}>
                 Cancelar
               </Button>
             )}
@@ -270,4 +258,3 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
     </Card>
   )
 }
-
