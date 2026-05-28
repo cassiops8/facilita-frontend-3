@@ -16,7 +16,7 @@ import {
   UserPlus
 } from 'lucide-react'
 import CalendarioAgenda from './CalendarioAgenda'
-
+ 
 export default function Dashboard({ funcionaria, onLogout, isViewing }) {
   const [clientes, setClientes] = useState([])
   const [agendamentos, setAgendamentos] = useState([])
