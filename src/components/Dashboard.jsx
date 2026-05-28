@@ -15,7 +15,6 @@ import {
   Send,
   UserPlus
 } from 'lucide-react'
-import facilitaLogo from '../assets/facilita-logo.jpeg'
 import CalendarioAgenda from './CalendarioAgenda'
 
 export default function Dashboard({ funcionaria, onLogout, isViewing }) {
@@ -28,25 +27,38 @@ export default function Dashboard({ funcionaria, onLogout, isViewing }) {
   const [mensagens, setMensagens] = useState([])
   const [novaMensagem, setNovaMensagem] = useState('')
 
+  // Pega o token salvo no login
+  const token = localStorage.getItem('token')
+  const authHeaders = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  }
+
   useEffect(() => {
     carregarDados()
   }, [funcionaria.id])
 
   const carregarDados = async () => {
     try {
-      const clientesResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/clientes?funcionaria_id=${funcionaria.id}`)
+      const clientesResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/clientes?funcionaria_id=${funcionaria.id}`, {
+        headers: authHeaders
+      })
       const clientesData = await clientesResponse.json()
-      setClientes(clientesData)
+      setClientes(Array.isArray(clientesData) ? clientesData : [])
 
-      const agendamentosResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/agendamentos?funcionaria_id=${funcionaria.id}`)
+      const agendamentosResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/agendamentos?funcionaria_id=${funcionaria.id}`, {
+        headers: authHeaders
+      })
       const agendamentosData = await agendamentosResponse.json()
-      setAgendamentos(agendamentosData)
+      setAgendamentos(Array.isArray(agendamentosData) ? agendamentosData : [])
 
-      const conversasResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/conversas?funcionaria_id=${funcionaria.id}&ativas_apenas=true`)
+      const conversasResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/conversas?funcionaria_id=${funcionaria.id}&ativas_apenas=true`, {
+        headers: authHeaders
+      })
       const conversasData = await conversasResponse.json()
-      setConversas(conversasData)
+      setConversas(Array.isArray(conversasData) ? conversasData : [])
 
-      if (clientesData.length > 0) {
+      if (Array.isArray(clientesData) && clientesData.length > 0) {
         setClienteSelecionado(clientesData[0])
       }
 
@@ -64,9 +76,11 @@ export default function Dashboard({ funcionaria, onLogout, isViewing }) {
 
   const carregarMensagens = async (conversaId) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/conversas/${conversaId}/mensagens`)
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/conversas/${conversaId}/mensagens`, {
+        headers: authHeaders
+      })
       const data = await response.json()
-      setMensagens(data)
+      setMensagens(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Erro ao carregar mensagens:', error)
     }
@@ -78,7 +92,7 @@ export default function Dashboard({ funcionaria, onLogout, isViewing }) {
     try {
       await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/conversas/${conversaSelecionada.id}/mensagens`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders,
         body: JSON.stringify({
           conteudo: novaMensagem,
           remetente: 'funcionaria',
@@ -117,11 +131,7 @@ export default function Dashboard({ funcionaria, onLogout, isViewing }) {
       <header className="bg-primary/20 border-b border-border">
         <div className="flex justify-between items-center h-16 px-6">
           <div className="flex items-center space-x-4">
-            <img 
-              src={facilitaLogo} 
-              alt="Facilita AR" 
-              className="h-8 w-auto object-contain"
-            />
+            <span style={{ fontWeight: 700, fontSize: '20px', color: 'var(--primary)' }}>Facilita</span>
             <span className="text-lg font-medium text-foreground">Assistentes Remotos</span>
           </div>
           
@@ -343,5 +353,3 @@ export default function Dashboard({ funcionaria, onLogout, isViewing }) {
     </div>
   )
 }
-
-
