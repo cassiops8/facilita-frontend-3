@@ -73,6 +73,15 @@ export default function CadastroCliente({ onSuccess, onCancel }) {
     'Outro'
   ]
 
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token')
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  }
+
   useEffect(() => {
     carregarDados()
   }, [])
@@ -80,12 +89,12 @@ export default function CadastroCliente({ onSuccess, onCancel }) {
   const carregarDados = async () => {
     try {
       // Carregar funcionárias
-      const funcionariasResponse = await fetch('/api/funcionarias')
+      const funcionariasResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/funcionarias`, { headers: getAuthHeaders() })
       const funcionariasData = await funcionariasResponse.json()
       setFuncionarias(funcionariasData)
 
       // Carregar tipos de cliente
-      const tiposResponse = await fetch('/api/tipos-cliente')
+      const tiposResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/tipos-cliente`, { headers: getAuthHeaders() })
       const tiposData = await tiposResponse.json()
       setTiposCliente(tiposData)
     } catch (error) {
@@ -97,9 +106,9 @@ export default function CadastroCliente({ onSuccess, onCancel }) {
     if (!novoTipo.trim()) return
 
     try {
-      const response = await fetch('/api/tipos-cliente', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/tipos-cliente`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           nome: novoTipo,
           setor: novoSetor || 'Geral',
@@ -127,9 +136,9 @@ export default function CadastroCliente({ onSuccess, onCancel }) {
     setSucesso('')
 
     try {
-      const response = await fetch('/api/clientes', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/clientes`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(formData)
       })
 
