@@ -27,11 +27,12 @@ export default function Dashboard({ funcionaria, onLogout, isViewing }) {
   const [mensagens, setMensagens] = useState([])
   const [novaMensagem, setNovaMensagem] = useState('')
 
-  // Pega o token salvo no login
-  const token = localStorage.getItem('token')
-  const authHeaders = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token')
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
   }
 
   useEffect(() => {
@@ -41,19 +42,19 @@ export default function Dashboard({ funcionaria, onLogout, isViewing }) {
   const carregarDados = async () => {
     try {
       const clientesResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/clientes?funcionaria_id=${funcionaria.id}`, {
-        headers: authHeaders
+        headers: getAuthHeaders()
       })
       const clientesData = await clientesResponse.json()
       setClientes(Array.isArray(clientesData) ? clientesData : [])
 
       const agendamentosResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/agendamentos?funcionaria_id=${funcionaria.id}`, {
-        headers: authHeaders
+        headers: getAuthHeaders()
       })
       const agendamentosData = await agendamentosResponse.json()
       setAgendamentos(Array.isArray(agendamentosData) ? agendamentosData : [])
 
       const conversasResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/conversas?funcionaria_id=${funcionaria.id}&ativas_apenas=true`, {
-        headers: authHeaders
+        headers: getAuthHeaders()
       })
       const conversasData = await conversasResponse.json()
       setConversas(Array.isArray(conversasData) ? conversasData : [])
@@ -77,7 +78,7 @@ export default function Dashboard({ funcionaria, onLogout, isViewing }) {
   const carregarMensagens = async (conversaId) => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/conversas/${conversaId}/mensagens`, {
-        headers: authHeaders
+        headers: getAuthHeaders()
       })
       const data = await response.json()
       setMensagens(Array.isArray(data) ? data : [])
@@ -92,7 +93,7 @@ export default function Dashboard({ funcionaria, onLogout, isViewing }) {
     try {
       await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/conversas/${conversaSelecionada.id}/mensagens`, {
         method: 'POST',
-        headers: authHeaders,
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           conteudo: novaMensagem,
           remetente: 'funcionaria',
@@ -127,7 +128,6 @@ export default function Dashboard({ funcionaria, onLogout, isViewing }) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="bg-primary/20 border-b border-border">
         <div className="flex justify-between items-center h-16 px-6">
           <div className="flex items-center space-x-4">
@@ -151,7 +151,6 @@ export default function Dashboard({ funcionaria, onLogout, isViewing }) {
       </header>
 
       <div className="flex h-[calc(100vh-4rem)]">
-        {/* Sidebar - Lista de Clientes */}
         <div className="w-80 bg-card border-r border-border">
           <div className="p-4 border-b border-border flex justify-between items-center">
             <h2 className="font-semibold text-foreground">Lista de Clientes</h2>
@@ -184,7 +183,6 @@ export default function Dashboard({ funcionaria, onLogout, isViewing }) {
           </div>
         </div>
 
-        {/* Área Central - Agenda */}
         <div className="flex-1 p-6">
           {clienteSelecionado && (
             <div className="mb-6 p-4 bg-card rounded-lg border border-border">
@@ -252,13 +250,11 @@ export default function Dashboard({ funcionaria, onLogout, isViewing }) {
           </div>
         </div>
 
-        {/* Sidebar Direita - Conversas */}
         <div className="w-80 bg-card border-l border-border">
           <div className="p-4 border-b border-border">
             <h2 className="font-semibold text-foreground">Conversas</h2>
           </div>
           
-          {/* Lista de Conversas */}
           <div className="h-64 overflow-y-auto border-b border-border">
             {conversas.map((conversa) => (
               <div 
@@ -288,7 +284,6 @@ export default function Dashboard({ funcionaria, onLogout, isViewing }) {
             ))}
           </div>
 
-          {/* Chat Area */}
           {conversaSelecionada && (
             <div className="flex flex-col h-full">
               <div className="p-4 border-b border-border bg-primary/10">
@@ -307,7 +302,6 @@ export default function Dashboard({ funcionaria, onLogout, isViewing }) {
                 </div>
               </div>
 
-              {/* Mensagens */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
                 {mensagens.map((mensagem) => (
                   <div 
@@ -331,7 +325,6 @@ export default function Dashboard({ funcionaria, onLogout, isViewing }) {
                 ))}
               </div>
 
-              {/* Input de Mensagem */}
               <div className="p-4 border-t border-border">
                 <div className="flex space-x-2">
                   <Input
