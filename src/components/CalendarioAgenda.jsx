@@ -52,13 +52,22 @@ export default function CalendarioAgenda({ funcionariaId, clientes = [] }) {
     { value: 'cancelado', label: 'Cancelado', color: 'bg-red-100 text-red-800' }
   ]
 
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token')
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  }
+
   useEffect(() => {
     carregarAgendamentos()
   }, [funcionariaId, dataAtual])
 
   const carregarAgendamentos = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/agendamentos?funcionaria_id=${funcionariaId}`)
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/agendamentos?funcionaria_id=${funcionariaId}`, { headers: getAuthHeaders() })
       const data = await response.json()
       setAgendamentos(data)
     } catch (error) {
@@ -155,7 +164,7 @@ export default function CalendarioAgenda({ funcionariaId, clientes = [] }) {
       
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           ...novoAgendamento,
           funcionaria_id: funcionariaId
