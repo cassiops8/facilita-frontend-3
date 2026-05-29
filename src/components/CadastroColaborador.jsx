@@ -24,20 +24,22 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
   const [erro, setErro] = useState('')
   const [sucesso, setSucesso] = useState('')
 
-  const token = localStorage.getItem('token')
-  const authHeaders = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  }
-
   useEffect(() => {
     carregarCategorias()
   }, [])
 
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token')
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  }
+
   const carregarCategorias = async () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/categorias-colaborador`, {
-        headers: authHeaders
+        headers: getAuthHeaders()
       })
       const data = await response.json()
       setCategorias(Array.isArray(data) ? data : [])
@@ -52,7 +54,7 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/categorias-colaborador`, {
         method: 'POST',
-        headers: authHeaders,
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           nome: novaCategoria,
           descricao: `Categoria ${novaCategoria}`
@@ -80,7 +82,7 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/funcionarias`, {
         method: 'POST',
-        headers: authHeaders,
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           ...formData,
           categoria_id: formData.categoria_id ? parseInt(formData.categoria_id) : null
