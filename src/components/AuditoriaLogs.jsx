@@ -41,6 +41,15 @@ export default function AuditoriaLogs({ onCancel }) {
   const [erro, setErro] = useState('')
   const [logSelecionado, setLogSelecionado] = useState(null)
 
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token')
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  }
+
   const acoes = ['CREATE', 'UPDATE', 'DELETE']
   const tabelas = [
     'funcionarias',
@@ -80,7 +89,7 @@ export default function AuditoriaLogs({ onCancel }) {
         )
       })
 
-      const response = await fetch(`/api/logs-auditoria?${params}`)
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/logs-auditoria?${params}`, { headers: getAuthHeaders() })
       const data = await response.json()
       
       setLogs(data.logs || [])
@@ -99,7 +108,7 @@ export default function AuditoriaLogs({ onCancel }) {
 
   const carregarResumo = async () => {
     try {
-      const response = await fetch('/api/logs-auditoria/resumo')
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/logs-auditoria/resumo`, { headers: getAuthHeaders() })
       const data = await response.json()
       setResumo(data)
     } catch (error) {
@@ -109,7 +118,7 @@ export default function AuditoriaLogs({ onCancel }) {
 
   const carregarFuncionarias = async () => {
     try {
-      const response = await fetch('/api/funcionarias')
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/funcionarias`, { headers: getAuthHeaders() })
       const data = await response.json()
       setFuncionarias(data)
     } catch (error) {
