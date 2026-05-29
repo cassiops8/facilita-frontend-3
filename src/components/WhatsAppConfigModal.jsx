@@ -31,6 +31,15 @@ export default function WhatsAppConfigModal({ cliente, isOpen, onClose, onSave }
   const [carregando, setCarregando] = useState(false)
   const [testando, setTestando] = useState(null)
 
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token')
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  }
+
   useEffect(() => {
     if (isOpen && cliente) {
       carregarConfigs()
@@ -39,7 +48,7 @@ export default function WhatsAppConfigModal({ cliente, isOpen, onClose, onSave }
 
   const carregarConfigs = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/whatsapp-configs?cliente_id=${cliente.id}`)
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/whatsapp-configs?cliente_id=${cliente.id}`, { headers: getAuthHeaders() })
       const data = await response.json()
       setConfigs(data)
     } catch (error) {
@@ -57,9 +66,7 @@ export default function WhatsAppConfigModal({ cliente, isOpen, onClose, onSave }
 
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/whatsapp-configs`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(configParaSalvar)
       })
 
@@ -90,9 +97,7 @@ export default function WhatsAppConfigModal({ cliente, isOpen, onClose, onSave }
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/whatsapp-configs/${configId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(dadosAtualizados)
       })
 
@@ -117,6 +122,7 @@ export default function WhatsAppConfigModal({ cliente, isOpen, onClose, onSave }
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/whatsapp-configs/${configId}`, {
         method: 'DELETE'
+        headers: getAuthHeaders(),
       })
 
       if (response.ok) {
@@ -134,6 +140,7 @@ export default function WhatsAppConfigModal({ cliente, isOpen, onClose, onSave }
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/whatsapp-configs/${configId}/toggle`, {
         method: 'PUT'
+        headers: getAuthHeaders(),
       })
 
       if (response.ok) {
@@ -155,9 +162,7 @@ export default function WhatsAppConfigModal({ cliente, isOpen, onClose, onSave }
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/whatsapp-configs/testar/${configId}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           numero_teste: numeroTeste,
           mensagem_teste: 'Teste de configuração do WhatsApp - Facilita AR'
