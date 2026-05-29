@@ -33,6 +33,15 @@ export default function ChatInterno({ funcionaria, isOpen, onClose }) {
   
   const mensagensRef = useRef(null)
 
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token')
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  }
+
+
   useEffect(() => {
     if (isOpen && funcionaria) {
       carregarDados()
@@ -57,7 +66,7 @@ export default function ChatInterno({ funcionaria, isOpen, onClose }) {
 
   const carregarDados = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/chat/grupos?funcionaria_id=${funcionaria.id}`)
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/chat/grupos?funcionaria_id=${funcionaria.id}`, { headers: getAuthHeaders() })
       const data = await response.json()
       setGrupos(data)
       
@@ -72,7 +81,7 @@ export default function ChatInterno({ funcionaria, isOpen, onClose }) {
 
   const carregarFuncionarias = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/funcionarias`)
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/funcionarias`, { headers: getAuthHeaders() })
       const data = await response.json()
       setFuncionarias(data)
     } catch (error) {
@@ -82,7 +91,7 @@ export default function ChatInterno({ funcionaria, isOpen, onClose }) {
 
   const carregarEstatisticas = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/chat/estatisticas/${funcionaria.id}`)
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/chat/estatisticas/${funcionaria.id}`, { headers: getAuthHeaders() })
       const data = await response.json()
       setEstatisticas(data)
     } catch (error) {
@@ -94,7 +103,7 @@ export default function ChatInterno({ funcionaria, isOpen, onClose }) {
     if (!grupoAtivo) return
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/chat/grupos/${grupoAtivo.id}/mensagens?limite=50`)
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/chat/grupos/${grupoAtivo.id}/mensagens?limite=50`, { headers: getAuthHeaders() })
       const data = await response.json()
       setMensagens(data)
     } catch (error) {
@@ -108,9 +117,7 @@ export default function ChatInterno({ funcionaria, isOpen, onClose }) {
     try {
       await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/chat/grupos/${grupoAtivo.id}/marcar-todas-lidas`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ funcionaria_id: funcionaria.id })
       })
       carregarEstatisticas()
@@ -126,9 +133,7 @@ export default function ChatInterno({ funcionaria, isOpen, onClose }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/chat/grupos/${grupoAtivo.id}/mensagens`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           remetente_id: funcionaria.id,
           conteudo: novaMensagem,
@@ -154,9 +159,7 @@ export default function ChatInterno({ funcionaria, isOpen, onClose }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/chat/grupos`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           ...novoGrupo,
           criado_por: funcionaria.id
