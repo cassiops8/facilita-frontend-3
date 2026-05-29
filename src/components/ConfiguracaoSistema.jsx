@@ -48,6 +48,15 @@ export default function ConfiguracaoSistema({ isOpen, onClose, onSave }) {
   const [logoFile, setLogoFile] = useState(null)
   const [previewLogo, setPreviewLogo] = useState(null)
 
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token')
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  }
+
   useEffect(() => {
     if (isOpen) {
       carregarConfiguracoes()
@@ -57,7 +66,7 @@ export default function ConfiguracaoSistema({ isOpen, onClose, onSave }) {
 
   const carregarConfiguracoes = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/configuracoes/aparencia`)
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/configuracoes/aparencia`, { headers: getAuthHeaders() })
       const data = await response.json()
       setAparencia(data)
     } catch (error) {
@@ -67,7 +76,7 @@ export default function ConfiguracaoSistema({ isOpen, onClose, onSave }) {
 
   const carregarInstancias = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/whitelabel/instancias`)
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/whitelabel/instancias`, { headers: getAuthHeaders() })
       const data = await response.json()
       setInstancias(data)
     } catch (error) {
@@ -80,9 +89,7 @@ export default function ConfiguracaoSistema({ isOpen, onClose, onSave }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/configuracoes/aparencia`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(aparencia)
       })
 
@@ -109,6 +116,7 @@ export default function ConfiguracaoSistema({ isOpen, onClose, onSave }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/configuracoes/upload-logo`, {
         method: 'POST',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
         body: formData
       })
 
@@ -146,9 +154,7 @@ export default function ConfiguracaoSistema({ isOpen, onClose, onSave }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/whitelabel/instancias`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           ...novaInstancia,
           cores_personalizadas: aparencia // Usar cores atuais como base
@@ -180,6 +186,7 @@ export default function ConfiguracaoSistema({ isOpen, onClose, onSave }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/whitelabel/instancias/${instanciaId}/toggle`, {
         method: 'PUT'
+        headers: getAuthHeaders(),
       })
 
       if (response.ok) {
@@ -201,6 +208,7 @@ export default function ConfiguracaoSistema({ isOpen, onClose, onSave }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/whitelabel/instancias/${instanciaId}`, {
         method: 'DELETE'
+        headers: getAuthHeaders(),
       })
 
       if (response.ok) {
@@ -217,7 +225,7 @@ export default function ConfiguracaoSistema({ isOpen, onClose, onSave }) {
 
   const exportarConfiguracoes = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/configuracoes/exportar`)
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/configuracoes/exportar`, { headers: getAuthHeaders() })
       const data = await response.json()
       
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
