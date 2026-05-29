@@ -43,10 +43,12 @@ export default function AdminDashboard({ funcionaria, onLogout, onViewFuncionari
   const [carregandoNova, setCarregandoNova] = useState(false)
   const [erroNova, setErroNova] = useState('')
 
-  const token = localStorage.getItem('token')
-  const authHeaders = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token')
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
   }
 
   const handleMenuSelect = (menuId) => {
@@ -70,7 +72,7 @@ export default function AdminDashboard({ funcionaria, onLogout, onViewFuncionari
   const carregarDados = async () => {
     try {
       const funcionariasResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/funcionarias`, {
-        headers: authHeaders
+        headers: getAuthHeaders()
       })
       const funcionariasData = await funcionariasResponse.json()
       setFuncionarias(Array.isArray(funcionariasData) ? funcionariasData : [])
@@ -93,15 +95,15 @@ export default function AdminDashboard({ funcionaria, onLogout, onViewFuncionari
 
       for (const func of funcionariasData) {
         if (!func.is_admin) {
-          const clientesResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/clientes?funcionaria_id=${func.id}`, { headers: authHeaders })
+          const clientesResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/clientes?funcionaria_id=${func.id}`, { headers: getAuthHeaders() })
           const clientesData = await clientesResponse.json()
           totalClientes += Array.isArray(clientesData) ? clientesData.length : 0
 
-          const agendamentosResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/agendamentos?funcionaria_id=${func.id}`, { headers: authHeaders })
+          const agendamentosResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/agendamentos?funcionaria_id=${func.id}`, { headers: getAuthHeaders() })
           const agendamentosData = await agendamentosResponse.json()
           totalAgendamentos += Array.isArray(agendamentosData) ? agendamentosData.length : 0
 
-          const conversasResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/conversas?funcionaria_id=${func.id}`, { headers: authHeaders })
+          const conversasResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/conversas?funcionaria_id=${func.id}`, { headers: getAuthHeaders() })
           const conversasData = await conversasResponse.json()
           totalConversas += Array.isArray(conversasData) ? conversasData.length : 0
         }
@@ -131,7 +133,7 @@ export default function AdminDashboard({ funcionaria, onLogout, onViewFuncionari
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/funcionarias`, {
         method: 'POST',
-        headers: authHeaders,
+        headers: getAuthHeaders(),
         body: JSON.stringify(novaFuncionaria),
       })
 
@@ -155,7 +157,7 @@ export default function AdminDashboard({ funcionaria, onLogout, onViewFuncionari
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/funcionarias/${funcionariaId}`, {
         method: 'PUT',
-        headers: authHeaders,
+        headers: getAuthHeaders(),
         body: JSON.stringify({ is_admin: !isAdmin }),
       })
       if (response.ok) {
