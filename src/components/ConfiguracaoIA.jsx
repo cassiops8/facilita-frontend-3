@@ -50,6 +50,15 @@ export default function ConfiguracaoIA({ isOpen, onClose, onSave }) {
   const [carregando, setCarregando] = useState(false)
   const [testando, setTestando] = useState(false)
 
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token')
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  }
+
   useEffect(() => {
     if (isOpen) {
       carregarDados()
@@ -67,7 +76,7 @@ export default function ConfiguracaoIA({ isOpen, onClose, onSave }) {
 
   const carregarStatusIA = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/ia/status`)
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/ia/status`, { headers: getAuthHeaders() })
       const data = await response.json()
       setStatusIA(data)
       setConfiguracao({
@@ -84,7 +93,7 @@ export default function ConfiguracaoIA({ isOpen, onClose, onSave }) {
 
   const carregarPrompts = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/ia/prompts`)
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/ia/prompts`, { headers: getAuthHeaders() })
       const data = await response.json()
       setPrompts(data)
     } catch (error) {
@@ -94,7 +103,7 @@ export default function ConfiguracaoIA({ isOpen, onClose, onSave }) {
 
   const carregarEstatisticas = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/ia/estatisticas`)
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/ia/estatisticas`, { headers: getAuthHeaders() })
       const data = await response.json()
       setEstatisticas(data)
     } catch (error) {
@@ -104,7 +113,7 @@ export default function ConfiguracaoIA({ isOpen, onClose, onSave }) {
 
   const carregarLogs = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/ia/logs?limite=20`)
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/ia/logs?limite=20`, { headers: getAuthHeaders() })
       const data = await response.json()
       setLogs(data)
     } catch (error) {
@@ -117,9 +126,7 @@ export default function ConfiguracaoIA({ isOpen, onClose, onSave }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/ia/configurar`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(configuracao)
       })
 
@@ -144,9 +151,7 @@ export default function ConfiguracaoIA({ isOpen, onClose, onSave }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/ia/testar`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ mensagem: mensagemTeste })
       })
 
@@ -168,9 +173,7 @@ export default function ConfiguracaoIA({ isOpen, onClose, onSave }) {
       const prompt = prompts.find(p => p.id === promptId)
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/ia/prompts/${promptId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ prompt: prompt?.prompt })
       })
 
