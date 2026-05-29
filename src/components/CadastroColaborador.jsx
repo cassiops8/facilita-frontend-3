@@ -81,7 +81,10 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/funcionarias`, {
         method: 'POST',
         headers: authHeaders,
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          ...formData,
+          categoria_id: formData.categoria_id ? parseInt(formData.categoria_id) : null
+        })
       })
 
       if (response.ok) {
