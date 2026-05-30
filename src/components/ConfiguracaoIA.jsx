@@ -78,7 +78,7 @@ export default function ConfiguracaoIA({ isOpen, onClose, onSave }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/ia/status`, { headers: getAuthHeaders() })
       const data = await response.json()
-      setStatusIA(data)
+      setStatusIA(data && typeof data === 'object' ? data : {})
       setConfiguracao({
         ia_ativa: data.ia_ativa,
         modelo_ia: data.modelo,
@@ -95,7 +95,7 @@ export default function ConfiguracaoIA({ isOpen, onClose, onSave }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/ia/prompts`, { headers: getAuthHeaders() })
       const data = await response.json()
-      setPrompts(data)
+      setPrompts(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Erro ao carregar prompts:', error)
     }
@@ -105,7 +105,7 @@ export default function ConfiguracaoIA({ isOpen, onClose, onSave }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/ia/estatisticas`, { headers: getAuthHeaders() })
       const data = await response.json()
-      setEstatisticas(data)
+      setEstatisticas(data && typeof data === 'object' ? data : {})
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error)
     }
@@ -115,7 +115,7 @@ export default function ConfiguracaoIA({ isOpen, onClose, onSave }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/ia/logs?limite=20`, { headers: getAuthHeaders() })
       const data = await response.json()
-      setLogs(data)
+      setLogs(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Erro ao carregar logs:', error)
     }
