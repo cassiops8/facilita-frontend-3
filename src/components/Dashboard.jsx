@@ -170,7 +170,7 @@ export default function Dashboard({ funcionaria, onLogout, isViewing }) {
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-10 w-10">
                     <AvatarFallback className="bg-primary/20 text-primary">
-                      {cliente.nome.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      {(cliente.nome || '?').split(' ').map(n => n[0]).join('').toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
@@ -270,7 +270,7 @@ export default function Dashboard({ funcionaria, onLogout, isViewing }) {
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-10 w-10">
                     <AvatarFallback className="bg-primary/20 text-primary">
-                      {conversa.nome_contato.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      {(conversa.nome_contato || '?').split(' ').map(n => n[0]).join('').toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
@@ -290,7 +290,7 @@ export default function Dashboard({ funcionaria, onLogout, isViewing }) {
                 <div className="flex items-center space-x-3">
                   <Avatar>
                     <AvatarFallback className="bg-primary/20 text-primary">
-                      {conversaSelecionada.nome_contato.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      {(conversaSelecionada.nome_contato || '?').split(' ').map(n => n[0]).join('').toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div>
