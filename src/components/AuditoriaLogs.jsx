@@ -110,7 +110,7 @@ export default function AuditoriaLogs({ onCancel }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/logs-auditoria/resumo`, { headers: getAuthHeaders() })
       const data = await response.json()
-      setResumo(data)
+      setResumo(data && typeof data === 'object' ? data : {})
     } catch (error) {
       console.error('Erro ao carregar resumo:', error)
     }
@@ -120,7 +120,7 @@ export default function AuditoriaLogs({ onCancel }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/funcionarias`, { headers: getAuthHeaders() })
       const data = await response.json()
-      setFuncionarias(data)
+      setFuncionarias(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Erro ao carregar funcionárias:', error)
     }
