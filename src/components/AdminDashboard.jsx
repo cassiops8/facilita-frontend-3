@@ -278,7 +278,7 @@ export default function AdminDashboard({ funcionaria, onLogout, onViewFuncionari
                         <div className="flex items-center space-x-4">
                           <Avatar className="h-12 w-12">
                             <AvatarFallback className="bg-primary/20 text-primary">
-                              {func.nome.split(' ').map(n => n[0]).join('').toUpperCase()}
+                              {(func.nome || '?').split(' ').map(n => n[0]).join('').toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
                           <div>
