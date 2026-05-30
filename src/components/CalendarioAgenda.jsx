@@ -130,6 +130,7 @@ export default function CalendarioAgenda({ funcionariaId, clientes = [] }) {
 
   const obterAgendamentosPorData = (data) => {
     const dataStr = data.toISOString().split('T')[0]
+    if (!Array.isArray(agendamentos)) return []
     return agendamentos.filter(ag => ag.data === dataStr)
   }
 
