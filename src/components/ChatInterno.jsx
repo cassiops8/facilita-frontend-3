@@ -68,11 +68,11 @@ export default function ChatInterno({ funcionaria, isOpen, onClose }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/chat/grupos?funcionaria_id=${funcionaria.id}`, { headers: getAuthHeaders() })
       const data = await response.json()
-      setGrupos(data)
+      setGrupos(Array.isArray(data) ? data : [])
       
       // Selecionar primeiro grupo se não houver nenhum ativo
       if (data.length > 0 && !grupoAtivo) {
-        setGrupoAtivo(data[0])
+        setGrupoAtivo(Array.isArray(data) && data.length > 0 ? data[0] : null)
       }
     } catch (error) {
       console.error('Erro ao carregar grupos:', error)
@@ -83,7 +83,7 @@ export default function ChatInterno({ funcionaria, isOpen, onClose }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/funcionarias`, { headers: getAuthHeaders() })
       const data = await response.json()
-      setFuncionarias(data)
+      setFuncionarias(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Erro ao carregar funcionárias:', error)
     }
@@ -93,7 +93,7 @@ export default function ChatInterno({ funcionaria, isOpen, onClose }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/chat/estatisticas/${funcionaria.id}`, { headers: getAuthHeaders() })
       const data = await response.json()
-      setEstatisticas(data)
+      setEstatisticas(data && typeof data === 'object' ? data : {})
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error)
     }
@@ -105,7 +105,7 @@ export default function ChatInterno({ funcionaria, isOpen, onClose }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/chat/grupos/${grupoAtivo.id}/mensagens?limite=50`, { headers: getAuthHeaders() })
       const data = await response.json()
-      setMensagens(data)
+      setMensagens(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Erro ao carregar mensagens:', error)
     }
@@ -235,7 +235,7 @@ export default function ChatInterno({ funcionaria, isOpen, onClose }) {
           </div>
 
           <div className="flex-1 overflow-y-auto p-2">
-            {grupos.filter(grupo => 
+            {(Array.isArray(grupos) ? grupos : []).filter(grupo => 
               grupo.nome.toLowerCase().includes(busca.toLowerCase())
             ).map((grupo) => (
               <div
@@ -339,7 +339,7 @@ export default function ChatInterno({ funcionaria, isOpen, onClose }) {
                       <div className="flex items-start space-x-3">
                         <Avatar className="h-8 w-8">
                           <AvatarFallback className="bg-primary/20 text-primary text-xs">
-                            {mensagem.remetente_nome.split(' ').map(n => n[0]).join('').toUpperCase()}
+                            {(mensagem.remetente_nome || '?').split(' ').map(n => n[0]).join('').toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
