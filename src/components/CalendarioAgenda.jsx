@@ -69,7 +69,7 @@ export default function CalendarioAgenda({ funcionariaId, clientes = [] }) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/agendamentos?funcionaria_id=${funcionariaId}`, { headers: getAuthHeaders() })
       const data = await response.json()
-      setAgendamentos(data)
+      setAgendamentos(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Erro ao carregar agendamentos:', error)
     }
