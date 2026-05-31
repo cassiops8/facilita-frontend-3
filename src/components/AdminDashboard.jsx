@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Checkbox } from '@/components/ui/checkbox'
 import Sidebar from './Sidebar'
 import CadastroColaborador from './CadastroColaborador'
+import GestaoColaboradores from './GestaoColaboradores'
 import CadastroCliente from './CadastroCliente'
 import MudarClienteColaborador from './MudarClienteColaborador'
 import AuditoriaLogs from './AuditoriaLogs'
@@ -33,6 +34,7 @@ export default function AdminDashboard({ funcionaria, onLogout, onViewFuncionari
   const [carregando, setCarregando] = useState(true)
   const [activeMenu, setActiveMenu] = useState('dashboard')
   const [mostrarModalNova, setMostrarModalNova] = useState(false)
+  const [mostrarModalColaborador, setMostrarModalColaborador] = useState(false)
   const [novaFuncionaria, setNovaFuncionaria] = useState({
     nome: '',
     email: '',
@@ -265,9 +267,9 @@ export default function AdminDashboard({ funcionaria, onLogout, onViewFuncionari
                       </CardTitle>
                       <CardDescription>Gerencie todas as funcionárias e seus acessos</CardDescription>
                     </div>
-                    <Button onClick={() => setMostrarModalNova(true)}>
+                    <Button onClick={() => setMostrarModalColaborador(true)}>
                       <UserPlus className="h-4 w-4 mr-2" />
-                      Nova Funcionária
+                      Novo Colaborador
                     </Button>
                   </div>
                 </CardHeader>
@@ -341,9 +343,8 @@ export default function AdminDashboard({ funcionaria, onLogout, onViewFuncionari
           )}
 
           {activeMenu === 'cadastrar-colaborador' && (
-            <CadastroColaborador
-              onSuccess={() => { setActiveMenu('dashboard'); carregarDados() }}
-              onCancel={() => setActiveMenu('dashboard')}
+            <GestaoColaboradores
+              onCancel={() => { setActiveMenu('dashboard'); carregarDados() }}
             />
           )}
 
@@ -372,6 +373,17 @@ export default function AdminDashboard({ funcionaria, onLogout, onViewFuncionari
                 A funcionalidade "{activeMenu}" está sendo desenvolvida e estará disponível em breve.
               </p>
               <Button onClick={() => setActiveMenu('dashboard')}>Voltar ao Dashboard</Button>
+            </div>
+          )}
+
+          {mostrarModalColaborador && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+              <div className="w-full max-w-2xl my-8">
+                <CadastroColaborador
+                  onSuccess={() => { setMostrarModalColaborador(false); carregarDados() }}
+                  onCancel={() => setMostrarModalColaborador(false)}
+                />
+              </div>
             </div>
           )}
 
