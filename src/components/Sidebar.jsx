@@ -25,9 +25,9 @@ export default function Sidebar({ onMenuSelect, activeMenu }) {
     },
     {
       id: 'cadastrar-colaborador',
-      label: 'Cadastrar Colaborador',
-      icon: UserPlus,
-      description: 'Adicionar nova funcionária'
+      label: 'Colaboradores',
+      icon: Users,
+      description: 'Gerenciar e cadastrar colaboradores'
     },
     {
       id: 'cadastrar-cliente',
@@ -129,4 +129,3 @@ export default function Sidebar({ onMenuSelect, activeMenu }) {
     </div>
   )
 }
-
