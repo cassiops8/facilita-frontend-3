@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -6,27 +6,42 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { UserPlus, Plus } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { UserPlus, Camera, Save } from 'lucide-react'
 
-export default function CadastroColaborador({ onSuccess, onCancel }) {
+export default function CadastroColaborador({ onSuccess, onCancel, colaboradorEditar = null }) {
+  const editando = !!colaboradorEditar
+
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
     senha: '',
     telefone: '',
     categoria_id: '',
-    is_admin: false
+    is_admin: false,
+    foto: ''
   })
   const [categorias, setCategorias] = useState([])
-  const [novaCategoria, setNovaCategoria] = useState('')
-  const [mostrarNovaCategoria, setMostrarNovaCategoria] = useState(false)
+  const [categoriaOutros, setCategoriaOutros] = useState('')
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState('')
   const [sucesso, setSucesso] = useState('')
+  const fileInputRef = useRef(null)
 
   useEffect(() => {
     carregarCategorias()
-  }, [])
+    if (colaboradorEditar) {
+      setFormData({
+        nome: colaboradorEditar.nome || '',
+        email: colaboradorEditar.email || '',
+        senha: '',
+        telefone: colaboradorEditar.telefone || '',
+        categoria_id: colaboradorEditar.categoria_id ? colaboradorEditar.categoria_id.toString() : '',
+        is_admin: colaboradorEditar.is_admin || false,
+        foto: colaboradorEditar.foto || ''
+      })
+    }
+  }, [colaboradorEditar])
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem('token')
@@ -48,29 +63,48 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
     }
   }
 
-  const criarCategoria = async () => {
-    if (!novaCategoria.trim()) return
+  const handleFotoChange = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
 
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/categorias-colaborador`, {
+    if (file.size > 2 * 1024 * 1024) {
+      setErro('A foto deve ter no máximo 2MB. Escolha uma imagem menor.')
+      return
+    }
+    if (!file.type.startsWith('image/')) {
+      setErro('Por favor, selecione um arquivo de imagem válido.')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setFormData(prev => ({ ...prev, foto: reader.result }))
+      setErro('')
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const resolverCategoriaId = async () => {
+    // Se escolheu "Outros", cria a categoria nova e retorna o id dela
+    if (formData.categoria_id === 'outros') {
+      if (!categoriaOutros.trim()) {
+        throw new Error('Digite o nome da categoria em "Outros".')
+      }
+      const resp = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/categorias-colaborador`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({
-          nome: novaCategoria,
-          descricao: `Categoria ${novaCategoria}`
+          nome: categoriaOutros.trim(),
+          descricao: `Categoria ${categoriaOutros.trim()}`
         })
       })
-
-      if (response.ok) {
-        const categoria = await response.json()
-        setCategorias([...categorias, categoria])
-        setFormData({ ...formData, categoria_id: categoria.id })
-        setNovaCategoria('')
-        setMostrarNovaCategoria(false)
+      if (!resp.ok) {
+        throw new Error('Não foi possível criar a categoria. Tente novamente.')
       }
-    } catch (error) {
-      console.error('Erro ao criar categoria:', error)
+      const cat = await resp.json()
+      return cat.id
     }
+    return formData.categoria_id ? parseInt(formData.categoria_id) : null
   }
 
   const handleSubmit = async (e) => {
@@ -80,26 +114,53 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
     setSucesso('')
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/funcionarias`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          ...formData,
-          categoria_id: formData.categoria_id ? parseInt(formData.categoria_id) : null
+      const categoriaIdResolvida = await resolverCategoriaId()
+
+      const corpo = {
+        nome: formData.nome,
+        email: formData.email,
+        telefone: formData.telefone,
+        categoria_id: categoriaIdResolvida,
+        is_admin: formData.is_admin,
+        foto: formData.foto
+      }
+
+      if (formData.senha && formData.senha.trim()) {
+        corpo.senha = formData.senha
+      }
+
+      let response
+      if (editando) {
+        response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/funcionarias/${colaboradorEditar.id}`, {
+          method: 'PUT',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(corpo)
         })
-      })
+      } else {
+        if (!formData.senha || !formData.senha.trim()) {
+          setErro('A senha é obrigatória para cadastrar um novo colaborador.')
+          setCarregando(false)
+          return
+        }
+        corpo.senha = formData.senha
+        response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/funcionarias`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(corpo)
+        })
+      }
 
       if (response.ok) {
-        setSucesso('Colaborador cadastrado com sucesso!')
+        setSucesso(editando ? 'Colaborador atualizado com sucesso!' : 'Colaborador cadastrado com sucesso!')
         setTimeout(() => {
           onSuccess && onSuccess()
-        }, 1500)
+        }, 1200)
       } else {
         const errorData = await response.json()
-        setErro(errorData.error || errorData.erro || 'Erro ao cadastrar colaborador')
+        setErro(errorData.error || errorData.erro || 'Erro ao salvar colaborador')
       }
     } catch (error) {
-      setErro('Erro de conexão. Tente novamente.')
+      setErro(error.message || 'Erro de conexão. Tente novamente.')
     } finally {
       setCarregando(false)
     }
@@ -109,19 +170,52 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
     setFormData({ ...formData, [field]: value })
   }
 
+  const iniciais = formData.nome
+    ? formData.nome.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : '?'
+
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
-          <UserPlus className="h-5 w-5" />
-          <span>Cadastrar Novo Colaborador</span>
+          {editando ? <Save className="h-5 w-5" /> : <UserPlus className="h-5 w-5" />}
+          <span>{editando ? 'Editar Colaborador' : 'Cadastrar Novo Colaborador'}</span>
         </CardTitle>
         <CardDescription>
-          Adicione uma nova funcionária ao sistema com categoria e permissões
+          {editando
+            ? 'Altere os dados do colaborador. Deixe a senha em branco para mantê-la.'
+            : 'Adicione um novo colaborador ao sistema com categoria e permissões'}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="flex flex-col items-center space-y-3">
+            <Avatar className="h-24 w-24">
+              {formData.foto ? (
+                <AvatarImage src={formData.foto} alt="Foto de perfil" />
+              ) : null}
+              <AvatarFallback className="bg-primary/20 text-primary text-2xl">
+                {iniciais}
+              </AvatarFallback>
+            </Avatar>
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              onChange={handleFotoChange}
+              style={{ display: 'none' }}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current && fileInputRef.current.click()}
+            >
+              <Camera className="h-4 w-4 mr-2" />
+              {formData.foto ? 'Trocar foto' : 'Adicionar foto'}
+            </Button>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="nome">Nome Completo *</Label>
             <Input
@@ -146,14 +240,16 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="senha">Senha *</Label>
+            <Label htmlFor="senha">
+              {editando ? 'Nova Senha (deixe em branco para manter)' : 'Senha *'}
+            </Label>
             <Input
               id="senha"
               type="password"
               value={formData.senha}
               onChange={(e) => handleInputChange('senha', e.target.value)}
-              placeholder="Digite uma senha segura"
-              required
+              placeholder={editando ? 'Deixe em branco para não alterar' : 'Digite uma senha segura'}
+              required={!editando}
             />
           </div>
 
@@ -169,51 +265,35 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
 
           <div className="space-y-2">
             <Label>Categoria do Colaborador</Label>
-            <div className="flex space-x-2">
-              <Select
-                value={formData.categoria_id}
-                onValueChange={(value) => handleInputChange('categoria_id', value)}
-              >
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Selecione uma categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">Secretária</SelectItem>
-                  <SelectItem value="2">SDR</SelectItem>
-                  <SelectItem value="3">Vendedor</SelectItem>
-                  {categorias.map((categoria) => (
+            <Select
+              value={formData.categoria_id}
+              onValueChange={(value) => handleInputChange('categoria_id', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione uma categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">Secretária</SelectItem>
+                <SelectItem value="2">SDR</SelectItem>
+                <SelectItem value="3">Vendedor</SelectItem>
+                {categorias
+                  .filter((categoria) => ![1, 2, 3].includes(categoria.id))
+                  .map((categoria) => (
                     <SelectItem key={categoria.id} value={categoria.id.toString()}>
                       {categoria.nome}
                     </SelectItem>
                   ))}
-                </SelectContent>
-              </Select>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setMostrarNovaCategoria(!mostrarNovaCategoria)}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
+                <SelectItem value="outros">Outros (especificar)</SelectItem>
+              </SelectContent>
+            </Select>
 
-            {mostrarNovaCategoria && (
-              <div className="flex space-x-2 mt-2">
+            {formData.categoria_id === 'outros' && (
+              <div className="mt-2">
                 <Input
-                  value={novaCategoria}
-                  onChange={(e) => setNovaCategoria(e.target.value)}
-                  placeholder="Nome da nova categoria"
-                  className="flex-1"
+                  value={categoriaOutros}
+                  onChange={(e) => setCategoriaOutros(e.target.value)}
+                  placeholder="Digite o nome da categoria (ex: Gerente, Financeiro...)"
                 />
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={criarCategoria}
-                  disabled={!novaCategoria.trim()}
-                >
-                  Criar
-                </Button>
               </div>
             )}
           </div>
@@ -246,10 +326,13 @@ export default function CadastroColaborador({ onSuccess, onCancel }) {
               {carregando ? (
                 <div className="flex items-center space-x-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Cadastrando...</span>
+                  <span>{editando ? 'Salvando...' : 'Cadastrando...'}</span>
                 </div>
               ) : (
-                <><UserPlus className="h-4 w-4 mr-2" />Cadastrar Colaborador</>
+                <>
+                  {editando ? <Save className="h-4 w-4 mr-2" /> : <UserPlus className="h-4 w-4 mr-2" />}
+                  {editando ? 'Salvar Alterações' : 'Cadastrar Colaborador'}
+                </>
               )}
             </Button>
             {onCancel && (
