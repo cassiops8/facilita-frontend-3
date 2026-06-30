@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Login from './components/Login'
 import Dashboard from './components/Dashboard'
 import AdminDashboard from './components/AdminDashboard'
+import TrocarSenhaObrigatoria from './components/TrocarSenhaObrigatoria'
 import './App.css'
 
 function App() {
@@ -9,6 +10,7 @@ function App() {
   const [viewMode, setViewMode] = useState('normal')
   const [funcionariaVisualizando, setFuncionariaVisualizando] = useState(null)
   const [carregandoSessao, setCarregandoSessao] = useState(true)
+  const [precisaTrocarSenha, setPrecisaTrocarSenha] = useState(false)
 
   useEffect(() => {
     const verificarSessao = async () => {
@@ -24,6 +26,9 @@ function App() {
           if (response.ok) {
             const funcionariaData = JSON.parse(userData)
             setFuncionaria(funcionariaData)
+            if (funcionariaData.senha_temporaria) {
+              setPrecisaTrocarSenha(true)
+            }
             if (funcionariaData.is_admin) setViewMode('admin')
           } else {
             localStorage.removeItem('token')
@@ -41,7 +46,14 @@ function App() {
 
   const handleLogin = (dadosFuncionaria) => {
     setFuncionaria(dadosFuncionaria)
+    if (dadosFuncionaria.senha_temporaria) {
+      setPrecisaTrocarSenha(true)
+    }
     if (dadosFuncionaria.is_admin) setViewMode('admin')
+  }
+
+  const handleSenhaTrocada = () => {
+    setPrecisaTrocarSenha(false)
   }
 
   const handleLogout = () => {
@@ -50,6 +62,7 @@ function App() {
     setFuncionaria(null)
     setViewMode('normal')
     setFuncionariaVisualizando(null)
+    setPrecisaTrocarSenha(false)
   }
 
   const handleViewFuncionaria = async (funcionariaId) => {
@@ -83,6 +96,16 @@ function App() {
   }
 
   if (!funcionaria) return <Login onLogin={handleLogin} />
+
+  // Se precisa trocar a senha (primeiro acesso), mostra a tela obrigatória
+  if (precisaTrocarSenha) {
+    return (
+      <TrocarSenhaObrigatoria
+        onSenhaTrocada={handleSenhaTrocada}
+        onLogout={handleLogout}
+      />
+    )
+  }
 
   if (viewMode === 'admin') {
     return (
