@@ -137,12 +137,8 @@ export default function CadastroColaborador({ onSuccess, onCancel, colaboradorEd
           body: JSON.stringify(corpo)
         })
       } else {
-        if (!formData.senha || !formData.senha.trim()) {
-          setErro('A senha é obrigatória para cadastrar um novo colaborador.')
-          setCarregando(false)
-          return
-        }
-        corpo.senha = formData.senha
+        // Senha é opcional - se vazia, backend usa a padrão F1234567
+        // (o colaborador troca no primeiro acesso)
         response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/funcionarias`, {
           method: 'POST',
           headers: getAuthHeaders(),
@@ -241,16 +237,20 @@ export default function CadastroColaborador({ onSuccess, onCancel, colaboradorEd
 
           <div className="space-y-2">
             <Label htmlFor="senha">
-              {editando ? 'Nova Senha (deixe em branco para manter)' : 'Senha *'}
+              {editando ? 'Nova Senha (deixe em branco para manter)' : 'Senha (opcional)'}
             </Label>
             <Input
               id="senha"
               type="password"
               value={formData.senha}
               onChange={(e) => handleInputChange('senha', e.target.value)}
-              placeholder={editando ? 'Deixe em branco para não alterar' : 'Digite uma senha segura'}
-              required={!editando}
+              placeholder={editando ? 'Deixe em branco para não alterar' : 'Padrão: F1234567 (troca no 1º acesso)'}
             />
+            {!editando && (
+              <p className="text-xs text-muted-foreground">
+                Se deixar em branco, a senha padrão será <strong>F1234567</strong>. O colaborador será obrigado a trocá-la no primeiro acesso.
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
